@@ -11,8 +11,7 @@ python run_pairwise_eval.py --dataset dalaj --model HuggingFaceTB/SmolLM-135M
 ```
 Arguments: 
 - `--dataset`: Dataset to evaluate (dalaj, scala-sv, bananer, idioms)
-- `--model`: Model to evaluate
-- `--batched`: Use batched computation (faster)
+- `--model`: Model to evaluate (hf identifier)
 - `--save-results`: Save results to JSON
 - `--output-dir`: Output directory for results
 
