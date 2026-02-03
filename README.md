@@ -6,7 +6,7 @@ Models and checkpoints are available on HuggingFace in the collection [Idiomatic
 
 ## Data
 
-All publicly releasible eval data is available as csv files in the data folder. 
+All publicly releasible eval data is available as csv files in the [data](data) folder. 
 
 The Translationese dataset is based on copyrighted material and cannot be published. To ensure reproducibility for those with access to the book it is based on, I publish the indices of the samples that are in the filtered subset described in the paper [here](data/Translationese_indices.json). 
 
