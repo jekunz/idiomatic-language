@@ -1,19 +1,25 @@
-from datasets import load_dataset, concatenate_datasets
+import pandas as pd
+from pathlib import Path
+
+CSV_DIR = Path(__file__).parent / "datasets_csv"
 
 
 def load_scala_swedish():
-    ds = load_dataset("jekunz/scala_sv_minpairs")
-    all_data = concatenate_datasets([ds['train'], ds['validation'], ds['test']])
+    dfs = []
+    for split in ['train', 'validation', 'test']:
+        df = pd.read_csv(CSV_DIR / f"scala_swedish_{split}.csv")
+        dfs.append(df)
+    all_data = pd.concat(dfs, ignore_index=True)
 
     filtered_flip = [
         (row['correct'], row['incorrect'])
-        for row in all_data
+        for _, row in all_data.iterrows()
         if row['type'] == 'flip_neighbours'
     ]
 
     filtered_delete = [
         (row['correct'], row['incorrect'])
-        for row in all_data
+        for _, row in all_data.iterrows()
         if row['type'] == 'delete'
     ]
 
@@ -32,8 +38,13 @@ def load_scala_swedish():
 
 
 def load_dalaj_minpairs():
-    ds = load_dataset("jekunz/dalaj_minpairs_sim")
-    all_data = concatenate_datasets([ds['train'], ds['validation'], ds['test']])
+    import ast
+
+    dfs = []
+    for split in ['train', 'validation', 'test']:
+        df = pd.read_csv(CSV_DIR / f"dalaj_{split}.csv")
+        dfs.append(df)
+    all_data = pd.concat(dfs, ignore_index=True)
 
     error_types = {
         'Morphology': 'M',
@@ -47,8 +58,8 @@ def load_dalaj_minpairs():
     for error_name, error_label in error_types.items():
         filtered = [
             (row['corrected_sentence'], row['sentence'])
-            for row in all_data
-            if row['meta']['error_label'] == error_label
+            for _, row in all_data.iterrows()
+            if ast.literal_eval(row['meta'])['error_label'] == error_label
         ]
         result[error_name] = {
             'correct': [x[0] for x in filtered],
@@ -65,14 +76,14 @@ def load_dalaj_minpairs():
 def load_bananer_translationese(tokenizer=None):
     from transformers import AutoTokenizer
 
-    ds = load_dataset("jekunz/bananer")
+    df = pd.read_csv(CSV_DIR / "bananer_translationese.csv")
 
     if tokenizer is None:
         tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM-135M")
 
     setups = {}
 
-    filtered = [(row['Alternativ'], row['Översättningssvenska']) for row in ds['train']]
+    filtered = [(row['Alternativ'], row['Översättningssvenska']) for _, row in df.iterrows()]
     setups['all'] = {
         'correct': [x[0] for x in filtered],
         'wrong': [x[1] for x in filtered]
@@ -80,7 +91,7 @@ def load_bananer_translationese(tokenizer=None):
 
     filtered = [
         (row['Alternativ'], row['Översättningssvenska'])
-        for row in ds['train']
+        for _, row in df.iterrows()
         if len(tokenizer(text=str(row["Alternativ"]))["input_ids"]) ==
            len(tokenizer(text=str(row["Översättningssvenska"]))["input_ids"])
         and row['Val'] == 'Alternativ'
@@ -92,7 +103,7 @@ def load_bananer_translationese(tokenizer=None):
 
     filtered = [
         (row['Alternativ'], row['Översättningssvenska'])
-        for row in ds['train']
+        for _, row in df.iterrows()
         if row['Val'] == 'Alternativ'
     ]
     setups['manual_only'] = {
@@ -102,7 +113,7 @@ def load_bananer_translationese(tokenizer=None):
 
     filtered = [
         (row['Alternativ'], row['Översättningssvenska'])
-        for row in ds['train']
+        for _, row in df.iterrows()
         if len(tokenizer(text=str(row["Alternativ"]))["input_ids"]) ==
            len(tokenizer(text=str(row["Översättningssvenska"]))["input_ids"])
     ]
@@ -113,7 +124,7 @@ def load_bananer_translationese(tokenizer=None):
 
     filtered = [
         (row['Alternativ'], row['Översättningssvenska'])
-        for row in ds['train']
+        for _, row in df.iterrows()
         if len(row["Alternativ"].split()) == len(row["Översättningssvenska"].split())
         and row['Val'] == 'Alternativ'
     ]
@@ -124,7 +135,7 @@ def load_bananer_translationese(tokenizer=None):
 
     filtered = [
         (row['Alternativ'], row['Översättningssvenska'])
-        for row in ds['train']
+        for _, row in df.iterrows()
         if len(row["Alternativ"].split()) == len(row["Översättningssvenska"].split())
     ]
     setups['whitespace_only'] = {
@@ -140,11 +151,11 @@ def load_bananer_translationese(tokenizer=None):
 
 
 def load_swedish_idioms():
-    ds = load_dataset("liu-nlp/swedish-idioms")
+    df = pd.read_csv(CSV_DIR / "swedish_idioms.csv")
 
     filtered = [
         (row['Positive (Minimal Pairs Setup)'], row['Negative (Minimal Pairs Setup)'])
-        for row in ds['train']
+        for _, row in df.iterrows()
     ]
 
     correct, wrong = zip(*filtered) if filtered else ([], [])
